@@ -3,24 +3,22 @@ from pathlib import Path
 
 st.set_page_config(page_title="Recetario TM6", layout="centered")
 
-# Cargar recetas desde archivos markdown
+# Leer archivos .md en la carpeta 'recetas'
 recetas_path = Path("recetas")
 archivos = list(recetas_path.glob("*.md"))
+
+# Diccionario {nombre bonito: ruta}
 recetas = {
-    archivo.stem.replace("_", " ").title(): archivo
+    archivo.stem.replace("_", " "): archivo
     for archivo in archivos
 }
 
-# Inicializar selección en sesión
-if "seleccion" not in st.session_state:
-    st.session_state["seleccion"] = "Inicio"
-
-# Lista de opciones disponibles
+# Obtener el índice de la opción seleccionada
 opciones = ["Inicio"] + list(recetas.keys())
-
-# Mostrar menú en barra lateral (opcional)
-st.sidebar.title("🍽️ Recetario TM6")
 indice_actual = opciones.index(st.session_state["seleccion"])
+
+# Sidebar
+st.sidebar.title("🍽️ Recetario TM6")
 st.session_state["seleccion"] = st.sidebar.selectbox(
     "Selecciona una receta",
     opciones,
@@ -29,24 +27,29 @@ st.session_state["seleccion"] = st.sidebar.selectbox(
 
 seleccion = st.session_state["seleccion"]
 
-# Mostrar contenido según selección
+
+# Mostrar contenido
 if seleccion == "Inicio":
     st.title("👩‍🍳 Bienvenido al Recetario para Thermomix TM6")
-    st.markdown("Explora recetas fáciles y saludables diseñadas para tu **TM6**.")
-    st.info("📱 En móviles, toca el botón **»** arriba a la izquierda para abrir el menú.")
+    st.write("Explora recetas fáciles y saludables diseñadas para tu TM6.")
+    st.info("En móviles, toca el botón de la esquina superior izquierda (») para ver las recetas.")
 
     st.markdown("### Accesos rápidos:")
+
     for nombre_receta in recetas.keys():
         if st.button(f"📄 {nombre_receta}"):
-            st.session_state["seleccion"] = nombre_receta
+            st.session_state['seleccion'] = nombre_receta
             st.rerun()
+
 else:
     receta_path = recetas[seleccion]
-    st.title(seleccion)
+    # st.title(seleccion)
+    
+    # Mostrar imagen si existe
+    imagen_path = f"imagenes/{receta_path.stem}.jpg"
+    if Path(imagen_path).exists():
+        st.image(imagen_path, width=400)
 
-    imagen_path = Path(f"imagenes/{receta_path.stem}.jpg")
-    if imagen_path.exists():
-        st.image(str(imagen_path), use_column_width=True)
-
+    # Mostrar contenido del archivo
     contenido = receta_path.read_text(encoding="utf-8")
     st.markdown(contenido, unsafe_allow_html=True)
